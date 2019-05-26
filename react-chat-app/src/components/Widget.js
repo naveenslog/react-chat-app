@@ -4,17 +4,18 @@ import StatusContainer from './StatusContainer';
 import MessageList from './MessageList';
 import ChatButton from './ChatButton';
 import Input from './Input';
+import TypingIndicator from './TypingIndicator';
+import axios from 'axios'
 
 class WrappedApp extends React.Component {
   constructor() {
     super();
     this.state = {
       typing: false,
-      visible: false
+      visible: false,
+      messages:[],
     };
     this.timer = null;
-    // this.handleOnSubmit = this.handleOnSubmit.bind(this);
-    this.handleOnChange = this.handleOnChange.bind(this);
     this.getVisibilityClass = this.getVisibilityClass.bind(this);
     this.minimizeOnClick = this.minimizeOnClick.bind(this);
     this.chatButtonOnClick = this.chatButtonOnClick.bind(this);
@@ -27,32 +28,47 @@ class WrappedApp extends React.Component {
     });
   }
 
-  handleOnChange() {
-    if (!this.state.typing) {
-      this.setState({ typing: true });
-    }
+  handleTyping = (event) =>{
+    this.setState({
+      typing: event
+    })
   }
 
+  generateReply = (payload) => {
+    this.handleTyping(true)
+    axios({
+      url: "https://www.naveenslog.ml/chatbot/reply/",
+      method: "post",
+      data: {"msg": payload.data.msg}
+    }).then(res=>{
+      let data = {
+        "visitorType": "agent",
+        "visitorName": "ChatBot",
+        "timestamp": new Date().getTime(),
+        "type":"chat.msg",
+        "msg": res.data.res
+      }
+      let newMsg = [...this.state.messages, data]
+      this.setState({
+        messages: newMsg
+      })
+      this.handleTyping(false)
+    })
+  }
 
-  // handleOnSubmit(event) {
-  //   event && event.preventDefault();
-
-  //   console.log(event.target)
-  //   const msg = this.msgInput;
-  //   console.log(msg)
-  //   // const msg = "test"
-  //   // Don't send empty messages
-  //   if (!msg) return;
-
-  //   // this.props.dispatch({
-  //   //   type: 'synthetic',
-  //   //   detail: {
-  //   //     type: 'visitor_send_msg',
-  //   //     msg
-  //   //   }
-  //   // });
-  //   this.refs.input.getRawInput().value = '';
-  // }
+  chatStore = (payload) =>{
+    switch(payload.type){
+      case 'msg':
+        let newMsg = [...this.state.messages, payload.data]
+        this.setState({
+          messages: newMsg
+        })
+        this.generateReply(payload)
+        break;
+      default:
+        console.log('Unhandled default case');
+    }
+  }
 
   getVisibilityClass() {
     return this.state.visible ? 'visible' : '';
@@ -83,15 +99,18 @@ class WrappedApp extends React.Component {
           />
           <MessageList
             visible={this.state.visible}
-            // messages={this.props.data && this.props.data.chats.toArray()}
+            messages={this.state.messages}
+            newMsg={this.state.newMsg}
           />
           {/* <div className={`spinner-container ${this.state.visible }`}>
             <div className="spinner"></div>
           </div> */}
+          <TypingIndicator addClass={this.state.typing}/>
           <Input
             onSubmit={this.handleOnSubmit}
             onChange={this.handleOnChange}
             addClass={this.getVisibilityClass()}
+            chatStore={this.chatStore}
           />
         </div>
         <ChatButton addClass={this.getVisibilityClass()} onClick={this.chatButtonOnClick} />

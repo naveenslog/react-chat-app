@@ -10,14 +10,14 @@ class ChatMessage extends React.Component {
     this.renderOptions = this.renderOptions.bind(this);
   }
 
-  getClassName(msg) {
-    return msg.member_type;
+  getClassName(visitorType) {
+    return visitorType;
   }
 
   renderOptions(options) {
     return (
       <div>
-        <h1>Option</h1>
+        {options}
       </div>
     )
   }
@@ -25,7 +25,7 @@ class ChatMessage extends React.Component {
   renderMessagePart(msg) {
       return (
         <div className="chat-msg">
-          <span>{this.props.message.msg}</span>
+          <span>{msg}</span>
           {this.renderOptions(this.props.message.options)}
         </div>
       );
@@ -34,7 +34,7 @@ class ChatMessage extends React.Component {
 
   render() {
     return (
-      <div className={`chat-msg-container ${this.getClassName(this.props.message)} ${this.props.addClass}`}>
+      <div className={`chat-msg-container ${this.getClassName(this.props.agent)} ${this.props.addClass}`}>
         <div className="avatar-container">
           <Avatar entity={this.props.agent} />
         </div>

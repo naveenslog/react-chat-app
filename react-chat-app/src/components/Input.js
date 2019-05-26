@@ -11,12 +11,22 @@ class Input extends Component {
 
   handleOnSubmit = (event)=> {
     event.preventDefault();
-
     const msg = this.msgInput.current.value;
-    console.log(msg)
 
     // Don't send empty messages
     if (!msg) return;
+
+    const payload = {
+      type: 'msg',
+      data: {
+        "visitorType": "visitor",
+        "visitorName": "unknownvisitor",
+        "timestamp": new Date().getTime(),
+        "type":"chat.msg",
+        "msg": msg
+      }
+    }
+    this.props.chatStore(payload)
     this.msgInput.current.value = '';
   }
 
