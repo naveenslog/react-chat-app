@@ -1,12 +1,4 @@
-$theme-color: #37B8AF;
-
-@font-face {
-    font-family: DNLTL;
-    -moz-font-feature-settings: "liga=0";
-    -moz-font-feature-settings: "liga" 0;
-    src: url("https://d1eipm3vz40hy0.cloudfront.net/fonts/DNLTL.eot");
-    src: url("https://d1eipm3vz40hy0.cloudfront.net/fonts/DNLTL.eot?#iefix") format("embedded-opentype"),url("https://d1eipm3vz40hy0.cloudfront.net/fonts/DNLTL.woff") format("woff"),url("https://d1eipm3vz40hy0.cloudfront.net/fonts/DNLTL.ttf") format("truetype"),url("https://d1eipm3vz40hy0.cloudfront.net/fonts/DNLTL.svg#DNLTL") format("svg")
-}
+$theme-color: black;
 
 .widget-container {
     background: white;
@@ -277,21 +269,6 @@ svg {
     display: block;
     margin: auto;
     height: 100%;
-}
-
-.system-msg-container {
-    text-align: center;
-    margin-bottom: 16px;
-}
-
-.system-msg {
-    font-size: 14px;
-    color: #BFBFBF;
-}
-
-.chat-rating-card {
-    padding-bottom: 16px;
-    text-align: center;
 }
 
 .card-container {
