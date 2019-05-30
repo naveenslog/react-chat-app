@@ -3,6 +3,11 @@ import ChatMessage from './ChatMessage';
 
 class MessageList extends Component {
 
+  constructor(props){
+    super(props)
+    this.renderAll = this.renderAll.bind(this)
+  }
+
   componentDidUpdate(){
     let scroll = document.getElementsByClassName("message-list-container")[0]
     scroll.scrollTo(0, scroll.scrollHeight)
@@ -24,7 +29,7 @@ class MessageList extends Component {
       }  
   }
 
-  renderAll = (messages) =>{
+  renderAll(messages){
     const msgItems = messages.map(msg=>{
       return this.renderByType(msg)
     })

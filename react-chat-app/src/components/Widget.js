@@ -20,6 +20,9 @@ class WrappedApp extends React.Component {
     this.minimizeOnClick = this.minimizeOnClick.bind(this);
     this.chatButtonOnClick = this.chatButtonOnClick.bind(this);
     this.setVisible = this.setVisible.bind(this);
+    this.handleTyping = this.handleTyping.bind(this)
+    this.generateReply = this.generateReply.bind(this)
+    this.chatStore = this.chatStore.bind(this)
   }
 
   componentDidMount() {
@@ -28,13 +31,13 @@ class WrappedApp extends React.Component {
     });
   }
 
-  handleTyping = (event) =>{
+  handleTyping(event){
     this.setState({
       typing: event
     })
   }
 
-  generateReply = (payload) => {
+  generateReply(payload){
     this.handleTyping(true)
     axios({
       url: "https://www.naveenslog.ml/chatbot/reply/",
@@ -56,7 +59,7 @@ class WrappedApp extends React.Component {
     })
   }
 
-  chatStore = (payload) =>{
+  chatStore(payload){
     switch(payload.type){
       case 'msg':
         let newMsg = [...this.state.messages, payload.data]

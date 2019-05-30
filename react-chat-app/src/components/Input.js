@@ -7,9 +7,10 @@ class Input extends Component {
     super(props);
     this.state = {};
     this.msgInput = React.createRef()
+    this.handleOnSubmit = this.handleOnSubmit.bind(this)
   }
 
-  handleOnSubmit = (event)=> {
+  handleOnSubmit(event){
     event.preventDefault();
     const msg = this.msgInput.current.value;
 
