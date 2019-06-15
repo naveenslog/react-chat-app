@@ -104,6 +104,9 @@ svg {
         outline: 3px dashed grey;
         outline-offset: -3px;
     }
+    &.email {
+        border: 1px solid green;
+    }
 }
 
 .input-form {
@@ -577,4 +580,9 @@ svg {
         transform: scale(1.0);
         opacity: 0;
     }
+}
+
+.card{
+    display: inline-block;
+    margin: 15px 0px 0px 0px;
 }

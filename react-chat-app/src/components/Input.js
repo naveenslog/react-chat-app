@@ -16,18 +16,39 @@ class Input extends Component {
 
     // Don't send empty messages
     if (!msg) return;
-
-    const payload = {
-      type: 'msg',
-      data: {
-        "visitorType": "visitor",
-        "visitorName": "unknownvisitor",
-        "timestamp": new Date().getTime(),
-        "type":"chat.msg",
-        "msg": msg
+    if(this.props.storeInputClass.trigger){
+      let savePayload = this.props.storeInputClass;
+      savePayload['value'] = msg;
+      console.log(savePayload)
+      const inputBox = document.getElementsByClassName("input")
+      inputBox[0].placeholder = "Enter message here"
+      const payload = {
+        type: 'option',
+        data: {
+          "visitorType": "visitor",
+          "visitorName": "unknownvisitor",
+          "timestamp": new Date().getTime(),
+          "type":"chat.msg",
+          "msg": msg,
+          "option": ["Need assistance", "Eamil_Captured"],
+          "trigger": undefined
+        }
       }
+      this.props.chatStore(payload)
+      this.props.storeInput("", false)
+    }else{
+      const payload = {
+        type: 'msg',
+        data: {
+          "visitorType": "visitor",
+          "visitorName": "unknownvisitor",
+          "timestamp": new Date().getTime(),
+          "type":"chat.msg",
+          "msg": msg
+        }
+      }
+      this.props.chatStore(payload)
     }
-    this.props.chatStore(payload)
     this.msgInput.current.value = '';
   }
 
@@ -35,6 +56,7 @@ class Input extends Component {
     const class_name = [
         'input-container',
         this.props.addClass,
+        this.props.storeInputClass.trigger? "email" : ""
       ].join(' ');
 
     return (

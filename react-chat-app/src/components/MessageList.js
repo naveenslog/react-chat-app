@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import ChatMessage from './ChatMessage';
+import OfflineForm from './OfflineForm';
+
 
 class MessageList extends Component {
 
@@ -19,9 +21,10 @@ class MessageList extends Component {
           return (
             <ChatMessage
               key={msg.type + msg.timestamp}
-              message={msg.msg}
+              message={msg}
               addClass={addClass}
               agent={msg.visitorType}
+              chatStore={this.props.chatStore}
             />
           );
         default:
@@ -33,7 +36,6 @@ class MessageList extends Component {
     const msgItems = messages.map(msg=>{
       return this.renderByType(msg)
     })
-
     return msgItems
   }
 
@@ -41,7 +43,10 @@ class MessageList extends Component {
     const { messages } = this.props;
     return (
       <div className="message-list-container">
-        <div>{this.renderAll(messages)}</div>
+        <div id="leave-msg" style={{ display: this.props.offlineForm ? 'block': 'none' }}>
+          <OfflineForm addClass={this.props.offlineForm} switchScreen={this.props.switchScreen} />
+        </div>
+        <div style={{ display: this.props.offlineForm ? 'none': 'block' }} >{this.renderAll(messages)}</div>
       </div>
     );
   }

@@ -1,11 +1,13 @@
-import '../styles/Widget.scss'
+import '../styles/Widget.scss';
 import React from 'react';
 import StatusContainer from './StatusContainer';
 import MessageList from './MessageList';
 import ChatButton from './ChatButton';
 import Input from './Input';
 import TypingIndicator from './TypingIndicator';
-import axios from 'axios'
+import axios from 'axios';
+import data from '../data/data';
+import _ from 'lodash';
 
 class WrappedApp extends React.Component {
   constructor() {
@@ -13,6 +15,8 @@ class WrappedApp extends React.Component {
     this.state = {
       typing: false,
       visible: false,
+      offlineForm: false,
+      storeInputData: {dataType: "", trigger: false},
       messages:[],
     };
     this.timer = null;
@@ -23,6 +27,8 @@ class WrappedApp extends React.Component {
     this.handleTyping = this.handleTyping.bind(this)
     this.generateReply = this.generateReply.bind(this)
     this.chatStore = this.chatStore.bind(this)
+    this.switchScreen = this.switchScreen.bind(this)
+    this.storeInput = this.storeInput.bind(this)
   }
 
   componentDidMount() {
@@ -37,40 +43,99 @@ class WrappedApp extends React.Component {
     })
   }
 
-  generateReply(payload){
+
+  generateReply(inpMessage){
     this.handleTyping(true)
-    axios({
-      url: "https://www.naveenslog.ml/chatbot/reply/",
-      method: "post",
-      data: {"msg": payload.data.msg}
-    }).then(res=>{
+    //Looking for reply in rule based system
+    const message = _.find(data, {"intent": inpMessage})
+    if (!message){
+      axios({
+        url: "https://www.naveenslog.ml/chatbot/reply/",
+        method: "post",
+        data: {"msg": inpMessage}
+      }).then(res=>{
+        let data = {
+          "visitorType": "agent",
+          "visitorName": "ChatBot",
+          "timestamp": new Date().getTime(),
+          "type":"chat.msg",
+          "msg": res.data.res
+        }
+        let newMsg = [
+          ...this.state.messages, data
+        ]
+        this.setState({
+          messages: newMsg
+        })
+        this.handleTyping(false)
+      })
+    } else {
       let data = {
         "visitorType": "agent",
         "visitorName": "ChatBot",
         "timestamp": new Date().getTime(),
-        "type":"chat.msg",
-        "msg": res.data.res
+        "type": "chat.msg",
+        "msg": message.msg,
+        "options": message.options
       }
-      let newMsg = [...this.state.messages, data]
+      let newMsg = [
+        ...this.state.messages, data
+      ]
       this.setState({
         messages: newMsg
       })
       this.handleTyping(false)
-    })
+    }
   }
 
   chatStore(payload){
     switch(payload.type){
-      case 'msg':
-        let newMsg = [...this.state.messages, payload.data]
+      case "msg":
         this.setState({
-          messages: newMsg
+          messages: [...this.state.messages, payload.data]
         })
-        this.generateReply(payload)
+        setTimeout(()=>{
+          this.generateReply(payload.data.msg) 
+        },500)
+        break;
+      case "option":
+        this.setState({
+          messages: [...this.state.messages, payload.data]
+        })
+        setTimeout(()=>{
+          this.generateReply(payload.data.option[1]) 
+        },500)
+        break;
+      case "noreply":
+        this.setState({
+          messages: [...this.state.messages, payload.data]
+        })
+        break;
+      case "trigger":
+        switch(true){
+          case payload.data.trigger === "Offline_Form":
+            this.setState({
+              offlineForm: true
+            })
+            break
+          case payload.data.trigger === "Capture_Email":
+            this.storeInput("email", true)
+            const inputBox = document.getElementsByClassName("input")
+            inputBox[0].placeholder = "Please enter email id"
+            break
+          default:
+            console.log("Unhandled Trigger")
+        }
         break;
       default:
         console.log('Unhandled default case');
     }
+  }
+
+  storeInput(dataType, trigger){
+    this.setState({
+      storeInputData: {dataType: dataType, trigger: trigger}
+    })
   }
 
   getVisibilityClass() {
@@ -83,6 +148,9 @@ class WrappedApp extends React.Component {
 
   chatButtonOnClick() {
     this.setVisible(true);
+    if(this.state.messages.length === 0){
+      this.generateReply("Greetings")
+    }
   }
 
   setVisible(visible) {
@@ -90,6 +158,41 @@ class WrappedApp extends React.Component {
       visible
     });
   }
+
+  switchScreen(action){
+    console.log(action)
+    if (action.type === "msg") {
+      if (action.payload.length === 0){
+        this.setState({
+          offlineForm: false
+        })        
+      }else{
+        const payload = {
+          type: 'option',
+          data: {
+            "visitorType": "visitor",
+            "visitorName": "unknownvisitor",
+            "timestamp": new Date().getTime(),
+            "type":"chat.msg",
+            "msg": action.payload,
+            "option": ["Ticket Raised", "Ticket Raised"],
+            "trigger": undefined
+          }
+        }
+        this.chatStore(payload)
+        this.setState({
+          offlineForm: false
+        })
+      }
+      let scroll = document.getElementsByClassName("message-list-container")[0]
+      scroll.scrollTo(0, scroll.scrollHeight)
+    } else if (action.type === "form") {
+      this.setState({
+        offlineForm: false
+      })
+    }
+  }
+
 
 
   render() {
@@ -99,17 +202,21 @@ class WrappedApp extends React.Component {
         <div className={`widget-container normal ${this.getVisibilityClass()}`}>
           <StatusContainer
             minimizeOnClick={this.minimizeOnClick}
+            switchScreen={this.switchScreen}
+            offlineForm={this.state.offlineForm}
           />
           <MessageList
             visible={this.state.visible}
             messages={this.state.messages}
             newMsg={this.state.newMsg}
+            chatStore={this.chatStore}
+            switchScreen={this.switchScreen}
+            offlineForm={this.state.offlineForm}
           />
-          {/* <div className={`spinner-container ${this.state.visible }`}>
-            <div className="spinner"></div>
-          </div> */}
           <TypingIndicator addClass={this.state.typing}/>
           <Input
+            storeInputClass={this.state.storeInputData}
+            storeInput={this.storeInput}
             onSubmit={this.handleOnSubmit}
             onChange={this.handleOnChange}
             addClass={this.getVisibilityClass()}
